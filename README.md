@@ -1,8 +1,3 @@
-#Kong plugin template
+# Kong zipkin plugin
 
-This repository contains a very simple Kong plugin template to get you
-up and running quickly for developing your own plugins.
-
-This template was designed to work with the `kong-vagrant` 
-[development environment](https://github.com/Mashape/kong-vagrant). Please
-checkout that repos `readme` for usage instructions.
+Work in progress...  Intended to simulate distributed tracing of clients and/or servers where these cannot practically be instrumented directly.
