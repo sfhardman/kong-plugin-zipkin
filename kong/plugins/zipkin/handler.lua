@@ -1,4 +1,5 @@
 local zipkin = require "kong.plugins.zipkin.zipkin"
+local utils = require "kong.tools.utils"
 
 local log = ngx.log
 
@@ -16,89 +17,58 @@ local plugin = require("kong.plugins.base_plugin"):extend()
 
 -- constructor
 function plugin:new()
-  plugin.super.new(self, "zipkin")  --TODO: change "zipkin" to the name of the plugin here
-
-  -- do initialization here, runs in the 'init_by_lua_block', before worker processes are forked
-
+  plugin.super.new(self, "zipkin")
 end
-
----------------------------------------------------------------------------------------------
--- In the code below, just remove the opening brackets; `[[` to enable a specific handler
---
--- The handlers are based on the OpenResty handlers, see the OpenResty docs for details
--- on when exactly they are invoked and what limitations each handler has.
---
--- The call to `.super.xxx(self)` is a call to the base_plugin, which does nothing, except logging
--- that the specific handler was executed.
----------------------------------------------------------------------------------------------
-
-
---[[ handles more initialization, but AFTER the worker process has been forked/created.
--- It runs in the 'init_worker_by_lua_block'
-function plugin:init_worker()
-  plugin.super.access(self)
-
-  -- your custom code here
-
-end --]]
-
---[[ runs in the ssl_certificate_by_lua_block handler
-function plugin:certificate(plugin_conf)
-  plugin.super.access(self)
-
-  -- your custom code here
-
-end --]]
-
---[[ runs in the 'rewrite_by_lua_block' (from version 0.10.2+)
--- IMPORTANT: during the `rewrite` phase neither the `api` nor the `consumer` will have
--- been identified, hence this handler will only be executed if the plugin is
--- configured as a global plugin!
-function plugin:rewrite(plugin_conf)
-  plugin.super.rewrite(self)
-
-  -- your custom code here
-
-end --]]
 
 ---[[ runs in the 'access_by_lua_block'
 function plugin:access(plugin_conf)
+  math.randomseed()
   plugin.super.access(self)
   zipkin.process_request(plugin_conf, ngx.req, ngx.ctx)
-  -- your custom code here
-  -- ngx.req.set_header("Hello-World", "this is on a request")
 
 end --]]
 
---[[ runs in the 'header_filter_by_lua_block'
-function plugin:header_filter(plugin_conf)
-  plugin.super.access(self)
+local function timer_callback(premature, plugin_conf, trace)
+  ngx.log(ngx.DEBUG, 'timer')
+  if premature then
+    ngx.log(ngx.DEBUG, 'premature')
+    -- Kong is shutting down, don't worry about posting trace
+    return
+  end
 
-  -- your custom code here, for example;
-  ngx.header["Bye-World"] = plugin_conf.zipkin_url
+  if not trace then
+    ngx.log(ngx.DEBUG, 'not trace')
+    -- not sampling, nothing to do
+    return
+  end
 
-end --]]
+  zipkin.send_trace(plugin_conf, trace)
 
---[[ runs in the 'body_filter_by_lua_block'
-function plugin:body_filter(plugin_conf)
-  plugin.super.access(self)
-
-  -- your custom code here
-
-end --]]
+end
 
 ---[[ runs in the 'log_by_lua_block'
 function plugin:log(plugin_conf)
   plugin.super.access(self)
 
-  zipkin.flush_trace(plugin_conf, ngx.req, ngx.ctx, ngx.status)
-  -- your custom code here
+  local trace = zipkin.prepare_trace(plugin_conf, ngx.req, ngx.ctx, ngx.status)
+
+  -- Doing the expensive work in a timer callback
+  -- See https://github.com/openresty/lua-nginx-module/#cosockets-not-available-everywhere
+
+  ngx.log(ngx.DEBUG, 'set timer')
+
+  local ok, err = ngx.timer.at(0, timer_callback, plugin_conf, trace)
+  if not ok then
+      ngx.log(ngx.ERR, "failed to create the timer: ", err)
+      return
+  end
 
 end --]]
 
 
--- set the plugin priority, which determines plugin execution order
-plugin.PRIORITY = 1000
+-- fine to execute this after everything else
+-- and don't want to waste time executing it for unauthenticated requests
+plugin.PRIORITY = 1
 
 -- return our plugin object
 return plugin
