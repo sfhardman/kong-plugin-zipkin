@@ -22,6 +22,8 @@ end
 
 ---[[ runs in the 'access_by_lua_block'
 function plugin:access(plugin_conf)
+  -- uncomment the following line to run with KONG_LUA_CODE_CACHE=false
+  -- not for prod use
   -- math.randomseed()
   plugin.super.access(self)
   zipkin.process_request(plugin_conf, ngx.req, ngx.ctx)
