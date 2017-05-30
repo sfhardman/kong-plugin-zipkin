@@ -15,8 +15,27 @@ local function inject(req, zipkin_trace)
   end
 end
 
+function dump(o)
+   if type(o) == 'table' then
+      local s = '{ '
+      for k,v in pairs(o) do
+         if type(k) ~= 'number' then k = '"'..k..'"' end
+         s = s .. '['..k..'] = ' .. dump(v) .. ','
+      end
+      return s .. '} '
+   else
+      return tostring(o)
+   end
+end
+
 local function random_sample(plugin_conf)
-  return plugin_conf.sample
+  if plugin_conf.sample_once_every_n_requests == 0 then
+    return false
+  elseif plugin_conf.sample_once_every_n_requests == 1 then
+    return true
+  else
+    return math.random(1, plugin_conf.sample_once_every_n_requests) == 1
+  end
 end
 
 local function random_string_of_len(length)
@@ -37,7 +56,7 @@ function _M.process_request(plugin_conf, req, ctx)
 
   local zipkin_trace = nil
 
-  if headers['X-B3-TraceId'] and headers['X-B3-SpanId'] and headers['X-B3-ParentSpanId'] then
+  if headers['X-B3-TraceId'] and headers['X-B3-SpanId'] then
     zipkin_trace = {
       trace_id = headers['X-B3-TraceId'],
       span_id = headers['X-B3-SpanId'],
@@ -133,19 +152,6 @@ function _M.prepare_trace(plugin_conf, req, ctx, status)
 
   return formatted_trace
 
-end
-
-local function dump(o)
-   if type(o) == 'table' then
-      local s = '{ '
-      for k,v in pairs(o) do
-         if type(k) ~= 'number' then k = '"'..k..'"' end
-         s = s .. '['..k..'] = ' .. dump(v) .. ','
-      end
-      return s .. '} '
-   else
-      return tostring(o)
-   end
 end
 
 function _M.send_trace(plugin_conf, trace)

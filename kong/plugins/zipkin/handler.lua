@@ -22,7 +22,7 @@ end
 
 ---[[ runs in the 'access_by_lua_block'
 function plugin:access(plugin_conf)
-  math.randomseed()
+  -- math.randomseed()
   plugin.super.access(self)
   zipkin.process_request(plugin_conf, ngx.req, ngx.ctx)
 
