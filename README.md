@@ -87,7 +87,7 @@ Neither client nor server can be instrumented, so Kong impersonates both ends of
 
 ## Parameters
 
-* zipkin_url: URL of the Zipkin REST endpoint (not the gRPC endpoint)
+* zipkin_url: Base URL of the Zipkin instance (protocol://host:port)
 * sample_once_every_n_requests: Causes the plugin to sample the request at this frequency.  Set to zero to never sample.  Set to one to always sample.  Regardless of this setting the plugin will always sample if it receives B3 headers indicating the caller is sampling (X-B3-Sampled == 1 or X-B3-Flags == 1)
 * simulate_server: Tells the plugin to impersonate the server which will process the request (Kong upstream_url).  Note that Kong will impersonate the client automatically if it is sampling and there are no B3 headers from the client
 
