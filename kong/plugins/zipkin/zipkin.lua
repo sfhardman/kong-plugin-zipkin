@@ -103,7 +103,7 @@ function _M.prepare_trace(plugin_conf, req, ctx, status)
       id = zipkin_trace.span_id,
       parentId = zipkin_trace.parent_span_id,
       traceId = zipkin_trace.trace_id,
-      timestamp = end_time,
+      timestamp = start_time,
       name = ngx.var.request_uri,
       duration = duration,
       annotations = {}
