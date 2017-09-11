@@ -48,7 +48,19 @@ Neither client nor server can be instrumented, so Kong impersonates both ends of
 ## Usage
 
 1. Requires Kong and Zipkin instances to exist
-2. Install the plugin on Kong
+2. Install the plugin on Kong:
+
+    Obtain plugin:
+
+    `$ git clone git@github.com:sfhardman/kong-plugin-zipkin.git /opt/plugins/kong-plugin-zipkin`
+    
+    Edit kong.conf:
+
+        lua_package_path = /opt/plugins/kong-plugin-zipkin/?.lua;;
+
+        custom_plugins = zipkin
+
+    Restart Kong
 3. Add the plugin to an API:
 
         $ curl -i -X POST \
