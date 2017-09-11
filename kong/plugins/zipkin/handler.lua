@@ -48,10 +48,17 @@ local function timer_callback(premature, plugin_conf, trace)
 
 end
 
----[[ runs in the 'log_by_lua_block'
-function plugin:log(plugin_conf)
-  plugin.super.access(self)
+---[[ runs in the 'header_filter_by_lua'
+function plugin:header_filter(plugin_conf)
+  -- "Executed when all response headers bytes have been received from the upstream service."
+  
+  -- this appears to be the most appropriate hook to 
+  -- determine server send (ss) time in.
+  -- log_by_lua_block runs when all response content has been sent back to client
+  -- but the clients appear to log client receive (cr) when headers are recieved
 
+  plugin.super.header_filter(self)
+  
   local trace = zipkin.prepare_trace(plugin_conf, ngx.req, ngx.ctx, ngx.status)
 
   -- Doing the expensive work in a timer callback

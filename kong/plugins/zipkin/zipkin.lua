@@ -92,11 +92,14 @@ function _M.prepare_trace(plugin_conf, req, ctx, status)
     return
   end
 
+  ngx.update_time() -- update nginx cached timestamp
+  local now = ngx.now()
+
   -- cjson will try to use scientific format, which we don't want
   local start_time = string.format("%.f", math.floor(1000000 * ngx.req.start_time()))
-  local end_time = string.format("%.f", math.floor(1000000 * ngx.now()))
+  local end_time = string.format("%.f", math.floor(1000000 * now))
 
-  local duration = math.floor(1000000 * (ngx.now() - ngx.req.start_time()))
+  local duration = math.floor(1000000 * (now - ngx.req.start_time()))
 
   local formatted_trace = {
       {
