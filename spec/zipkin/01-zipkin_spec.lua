@@ -43,7 +43,7 @@ describe("zipkin core", function()
       }
 
       local ctx, req = process_request(headers, plugin_conf)
-)
+      
       assert.equal(headers['X-B3-TraceId'], req.get_headers()['X-B3-TraceId'])
       assert.equal(headers['X-B3-SpanId'], req.get_headers()['X-B3-SpanId'])
     end)
