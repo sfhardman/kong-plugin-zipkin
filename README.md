@@ -2,7 +2,7 @@
 
 This is a plugin for the [Kong](https://getkong.org/) API gateway to integrate with the [Zipkin](http://zipkin.io/) distributed tracing system.  It allows for some degree of Zipkin instrumentation of connections between systems where one or both ends can't be directly instrumented.
 
-*This is proof of concept code, not production ready*
+*This code has not been used in a production deployment by the author - you should verify it works for you before deploying.*
 
 ## Scenarios
 
@@ -53,7 +53,7 @@ Neither client nor server can be instrumented, so Kong impersonates both ends of
     Obtain plugin:
 
     `$ git clone git@github.com:sfhardman/kong-plugin-zipkin.git /opt/plugins/kong-plugin-zipkin`
-    
+
     Edit kong.conf:
 
         lua_package_path = /opt/plugins/kong-plugin-zipkin/?.lua;;

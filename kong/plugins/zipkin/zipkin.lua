@@ -39,12 +39,11 @@ local function random_sample(plugin_conf)
 end
 
 local function random_string_of_len(length)
-  if length > 32 then
-    ngx.log(ngx.ERROR, "maximum random_string_of_len length exceeded", length)
-    -- not sure how to propagate the error....
-    return nil
+  local value = ""
+  for i=1,length,1 do
+    value = value..string.format("%x", math.random(0, 15))
   end
-  return string.sub(utils.random_string(), 1, length)
+  return value
 end
 
 function _M.process_request(plugin_conf, req, ctx)
